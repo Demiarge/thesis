@@ -39,3 +39,140 @@ Here's how you can justify the use of Isolation Forest and validate your results
 Justifying the **Isolation Forest** in your thesis involves demonstrating how it fits into the broader methodological framework (e.g., how it complements your time-series forecasting and correlation analyses). Make sure to emphasize the practical utility of identifying anomalies for a utility company and how your results could inform decision-making (e.g., fraud detection, operational efficiency).
 
 By incorporating these justifications into your thesis, you’ll be able to prove that your model is not only valid from a technical standpoint but also relevant and actionable for real-world applications. Let me know if you'd like help with any specific section or further analysis!
+
+
+
+
+
+The error you're encountering:
+
+```plaintext
+KeyError: "['True Label'] not in index"
+```
+
+indicates that the `'True Label'` column is missing from your `data_cleaned` DataFrame. This column is essential for computing the ROC curve and AUC score because it contains the ground truth labels indicating whether each customer is truly anomalous (`1`) or normal (`0`).
+
+## **Why This Error Occurs**
+
+In your code, you attempt to merge the `'True Label'` column from `data_cleaned` into `residuals_df`:
+
+```python
+# Merge true labels into residuals_df
+residuals_df = residuals_df.merge(
+    data_cleaned[['Customer No', 'True Label']],
+    on='Customer No',
+    how='left'
+)
+```
+
+However, since `'True Label'` does not exist in `data_cleaned`, Python raises a `KeyError`.
+
+## **Understanding the Importance of Ground Truth Labels**
+
+To compute the ROC curve and AUC score, you need:
+
+1. **True Labels (`y_true`)**: The actual labels indicating whether each customer is anomalous (`1`) or normal (`0`).
+2. **Predicted Scores (`y_scores`)**: The anomaly scores from your model.
+
+Without the true labels, it's impossible to evaluate the model's performance using ROC and AUC metrics because these metrics compare the model's predictions against the actual outcomes.
+
+## **How to Resolve the Issue**
+
+### **Option 1: Provide Ground Truth Labels**
+
+If you have access to ground truth labels, you need to include them in your dataset. Here's how you can do it:
+
+1. **Add the 'True Label' Column to `data_cleaned`**
+
+   Ensure that your `data_cleaned` DataFrame includes a `'True Label'` column:
+
+   ```python
+   # Example: Add 'True Label' column to data_cleaned
+   # This assumes you have a separate DataFrame or a method to obtain the true labels
+   true_labels_df = pd.read_csv('true_labels.csv')  # Replace with your method of obtaining true labels
+   data_cleaned = data_cleaned.merge(true_labels_df, on='Customer No', how='left')
+   ```
+
+2. **Proceed with Computing ROC and AUC**
+
+   After including the true labels, you can proceed with your code to compute ROC and AUC.
+
+### **Option 2: Create Synthetic Ground Truth Labels (Not Recommended for Evaluation)**
+
+If you don't have ground truth labels, you might be tempted to create synthetic labels. However, this approach is not recommended because:
+
+- **Misleading Evaluation**: Synthetic labels won't accurately reflect the true performance of your model.
+- **Invalid Metrics**: ROC and AUC computed from synthetic labels are not meaningful.
+
+### **Option 3: Use Alternative Evaluation Methods**
+
+In the absence of ground truth labels, you can consider alternative methods to assess your model:
+
+1. **Unsupervised Evaluation Metrics**
+
+   - **Reconstruction Error**: Analyze the distribution of anomaly scores.
+   - **Cluster Analysis**: Visualize data clusters and outliers.
+
+2. **Domain Expert Validation**
+
+   - **Manual Inspection**: Have domain experts review the top anomalies identified by the model.
+   - **Case Studies**: Investigate specific instances to see if the anomalies make sense.
+
+3. **Semi-Supervised Approaches**
+
+   - **Label a Subset**: If possible, manually label a small subset of data to serve as ground truth.
+   - **Active Learning**: Iteratively refine your model based on feedback.
+
+## **Next Steps**
+
+Given the importance of ground truth labels for computing ROC and AUC, here are the steps you can take:
+
+1. **Check for Ground Truth Labels**
+
+   - Do you have access to any labels indicating which customers are anomalous?
+   - Is there a way to obtain or infer these labels from your data or domain knowledge?
+
+2. **Update Your Dataset**
+
+   - If you have labels, add them to your dataset.
+   - Ensure that the `'True Label'` column aligns correctly with `'Customer No'`.
+
+3. **Modify Your Code Accordingly**
+
+   - Once the labels are in place, your code for computing ROC and AUC should work without errors.
+
+## **Example of Adding True Labels**
+
+Here's how you might modify your code if you have the true labels:
+
+```python
+# Assume you have a DataFrame 'true_labels_df' with 'Customer No' and 'True Label'
+true_labels_df = pd.read_csv('true_labels.csv')  # Replace with your actual data source
+
+# Merge true labels into data_cleaned
+data_cleaned = data_cleaned.merge(true_labels_df, on='Customer No', how='left')
+
+# Now proceed with your existing code
+# ...
+
+# Merge true labels into residuals_df
+residuals_df = residuals_df.merge(
+    data_cleaned[['Customer No', 'True Label']],
+    on='Customer No',
+    how='left'
+)
+```
+
+## **Conclusion**
+
+To compute ROC and AUC:
+
+- **Ensure Ground Truth Labels Are Available**: You must have actual labels indicating anomalies.
+- **Integrate Labels into Your Data**: Merge the labels into your DataFrames appropriately.
+- **Proceed with Evaluation**: Once labels are in place, you can compute ROC and AUC.
+
+If you do not have ground truth labels, you will need to consider alternative methods for evaluating your model, as computing ROC and AUC is not feasible without them.
+
+## **Additional Assistance**
+
+If you need help obtaining ground truth labels or exploring alternative evaluation methods, please let me know, and I can provide guidance on how to proceed.
